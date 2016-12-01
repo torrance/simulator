@@ -166,10 +166,10 @@ logging.info("Creating scatter plot...")
 plt.figure('metrics', figsize=(8, 4.5))
 plt.subplot(1, 1, 1)
 xs = [(source.major + source.minor)/2 for source in misses]
-ys = [source.intensity for source in misses]
+ys = [source.peak for source in misses]
 plt.scatter(xs, ys, c='orange')
 xs = [(source[0].major + source[0].minor)/2 for source in matches]
-ys = [source[0].intensity for source in matches]
+ys = [source[0].peak for source in matches]
 plt.scatter(xs, ys, c='green')
 plt.xlabel('Mean size of 1 sigma (pixels)')
 plt.ylabel('Intensity (sigma)')
