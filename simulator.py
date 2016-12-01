@@ -81,7 +81,7 @@ hdu1.header += w.to_header()
 # convolution by a known factor, which we add here.
 logging.info("Applying noise...")
 convolution_factor = 2 * 4 * math.sqrt(math.pi)
-noise = np.random.normal(0, 1 * convolution_factor, (XSIZE, YSIZE))
+noise = np.random.normal(0, 1 * convolution_factor, (YSIZE, XSIZE))
 data += noise
 
 # Convolve against a 2D Gaussian
