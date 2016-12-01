@@ -13,8 +13,8 @@ def synthetic_source_generator(count, xsize, ysize, wcshelper):
     for i in range(count):
         loc_x = np.random.randint(0, high=xsize)
         loc_y = np.random.randint(0, high=ysize)
-        peak = 1.5 + np.abs(np.random.normal(0, 1))
-        major = np.abs(np.random.normal(0, max(0.02 * xsize, 35))) + 20
+        peak = np.random.uniform(low=1.5, high=5)
+        major = np.random.uniform(low=20, high=200)
         minor = major * np.random.uniform(low=0.5, high=1.5)
         pa = np.random.uniform(low=0.0, high=360.0)
         ra, dec, wmajor, wminor, wpa = wcshelper.pix2sky_ellipse(
