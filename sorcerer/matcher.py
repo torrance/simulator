@@ -6,16 +6,16 @@ from sorcerer.models import ellipse
 def matcher(catalog, sources, wcshelper):
     """
     We establish a source match if two conditions hold:
-    1. the source ellipse overlaps the 2 sigma region of the catalog
-       by more than 98%
+    1. the source ellipse overlaps the 1 sigma region of the catalog
+       by more than 95%
     2. the source ellipse exceeds the 3 sigma region of the catalog
-       by no more than 50%
+       by no more than 80%
 
     Returns:
         Either the index of the matching source or False
     """
-    # Set up grid to test match against 2 sigma overlap
-    r = max(catalog.major, catalog.minor)*2
+    # Set up grid to test match against 1 sigma overlap
+    r = max(catalog.major, catalog.minor)*1
     xmin = int(catalog.loc_x-r)
     xmax = int(catalog.loc_x+r)
     ymin = int(catalog.loc_y-r)
@@ -30,7 +30,7 @@ def matcher(catalog, sources, wcshelper):
         source_ellipse = ellipse(X, Y, source.loc_x, source.loc_y,
                                  source.major, source.minor, source.pa)
         missed = np.sum(catalog_2sigma[-source_ellipse])
-        if missed / count < 0.02:
+        if missed/count < 0.05:
             # Now we test for significant overreach beyond 3 sigma
             # First, we create a new grid that is the larger of the two:
             # either the source or the catalog at 3 sigma width
@@ -47,18 +47,18 @@ def matcher(catalog, sources, wcshelper):
             source_ellipse = ellipse(X3, Y3, source.loc_x, source.loc_y,
                                      source.major, source.minor, source.pa)
             excess = np.sum(source_ellipse[-catalog_3sigma])
-            if excess/count3 > 0.5:
+            if excess/count3 > 0.8:
                 logging.info("Match excluded: catalog {} and detection {}, but 3 sigma excess is {} of 3 sigma pixels"
                              .format(catalog.id, source.id,  excess/count3))
             else:
-                logging.info("Source matched: catalog {} and detection {}, with 2 sigma miss of {}, 3 sigma excess of {}"
+                logging.info("Source matched: catalog {} and detection {}, with 1 sigma miss of {}, 3 sigma excess of {}"
                              .format(catalog.id,
                                      source.id,
                                      missed/count,
                                      excess/count3))
                 return i
         elif missed/count < 0.5:
-            logging.info("Close match: catalog {} and detection {}, missing {} of 2 sigma pixels"
+            logging.info("Close match: catalog {} and detection {}, missing {} of 1 sigma pixels"
                          .format(catalog.id, source.id, missed/count))
 
     else:
