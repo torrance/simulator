@@ -48,20 +48,17 @@ def matcher(catalog, sources, wcshelper):
                                      source.major, source.minor, source.pa)
             excess = np.sum(source_ellipse[-catalog_3sigma])
             if excess/count3 > 0.5:
-                logging.info("Match excluded: catalog {} and detection {}, \
-                              but 3 sigma excess is {} of 3 sigma pixels"
+                logging.info("Match excluded: catalog {} and detection {}, but 3 sigma excess is {} of 3 sigma pixels"
                              .format(catalog.id, source.id,  excess/count3))
             else:
-                logging.info("Source matched: catalog {} and detection {}, \
-                              with 2 sigma miss of {}, 3 sigma excess of {}"
+                logging.info("Source matched: catalog {} and detection {}, with 2 sigma miss of {}, 3 sigma excess of {}"
                              .format(catalog.id,
                                      source.id,
                                      missed/count,
                                      excess/count3))
                 return i
         elif missed/count < 0.5:
-            logging.info("Close match: catalog {} and detection {}, \
-                          missing {} of 2 sigma pixels"
+            logging.info("Close match: catalog {} and detection {}, missing {} of 2 sigma pixels"
                          .format(catalog.id, source.id, missed/count))
 
     else:
