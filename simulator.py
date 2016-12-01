@@ -39,7 +39,7 @@ if not isinstance(numeric_level, int):
 logging.basicConfig(level=numeric_level)
 
 # Setup grid
-data = np.zeros((XSIZE, YSIZE))
+data = np.zeros((YSIZE, XSIZE))
 
 # Locate us in some junk location
 w = wcs.WCS(naxis=2)
