@@ -1,4 +1,4 @@
-from sourcerer.angle_tools import gcd, translate, bear
+from sorcerer.angle_tools import gcd, translate, bear
 from astropy import wcs
 import numpy as np
 

@@ -1,6 +1,6 @@
 import logging
 import numpy as np
-from sourcerer.models import ellipse
+from sorcerer.models import ellipse
 
 
 def matcher(catalog, sources, wcshelper):

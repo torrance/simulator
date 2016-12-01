@@ -10,10 +10,10 @@ import numpy as np
 from astropy import wcs
 from astropy.convolution import Gaussian2DKernel, convolve
 from astropy.io import fits
-from sourcerer.models import draw_gaussian, Ellipse
-from sourcerer.output import Annotation
-from sourcerer.sources import synthetic_source_generator, is_overlapping_source
-from sourcerer.wcs_helpers import WCSHelper
+from sorcerer.models import draw_gaussian, Ellipse
+from sorcerer.output import Annotation
+from sorcerer.sources import synthetic_source_generator, is_overlapping_source
+from sorcerer.wcs_helpers import WCSHelper
 
 
 parser = argparse.ArgumentParser(description='Generate a FITS radio image file.')

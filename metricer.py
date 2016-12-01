@@ -9,10 +9,10 @@ import aplpy
 import matplotlib
 from matplotlib import pyplot as plt
 import numpy as np
-from sourcerer.models import ellipse
-from sourcerer.matcher import matcher
-from sourcerer.sources import aegean_sources_from_CSV, synthetic_sources_from_CSV, duchamp_sources_from_txt
-from sourcerer.wcs_helpers import WCSHelper
+from sorcerer.models import ellipse
+from sorcerer.matcher import matcher
+from sorcerer.sources import aegean_sources_from_CSV, synthetic_sources_from_CSV, duchamp_sources_from_txt
+from sorcerer.wcs_helpers import WCSHelper
 
 # Use Ubuntu because it has greek glpyhs included (ie. mu)
 matplotlib.rcParams['font.family'] = 'Ubuntu'
