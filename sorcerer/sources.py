@@ -55,6 +55,15 @@ def is_overlapping_source(candidate, sources):
     return False
 
 
+def is_edge(candidate, xsize, ysize):
+    r = max(candidate.major, candidate.minor) * 1.5
+    xmin = candidate.loc_x - r
+    xmax = candidate.loc_x + r
+    ymin = candidate.loc_y - r
+    ymax = candidate.loc_y + r
+    return xmin < 0 or xmax > xsize or ymin < 0 or ymax > ysize
+
+
 def aegean_sources_from_CSV(filename, wcshelper):
     sources = []
     with open(filename) as csvfile:

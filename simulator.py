@@ -12,7 +12,7 @@ from astropy.convolution import Gaussian2DKernel, convolve
 from astropy.io import fits
 from sorcerer.models import draw_gaussian, Ellipse
 from sorcerer.output import Annotation
-from sorcerer.sources import synthetic_source_generator, is_overlapping_source
+from sorcerer.sources import synthetic_source_generator, is_overlapping_source, is_edge
 from sorcerer.wcs_helpers import WCSHelper
 
 
@@ -21,14 +21,12 @@ parser.add_argument('--xsize', '-x', dest='xsize', default=2000, type=int)
 parser.add_argument('--ysize', '-y', dest='ysize', default=2000, type=int)
 parser.add_argument('--count', '-c', dest='count', default=50, type=int)
 parser.add_argument('--dist', dest='distribution', default='normal', choices=['normal', 'uniform'])
-parser.add_argument('--dedup', '-d', dest='dedup', action='store_true')
 parser.add_argument('--log', '-l', dest='log', default='WARNING')
 args = parser.parse_args()
 
 XSIZE = args.xsize
 YSIZE = args.ysize
 COUNT = args.count
-DEDUP = args.dedup
 DISTRIBUTION = args.distribution
 LOGLEVEL = args.log
 
@@ -63,12 +61,11 @@ wcshelper = WCSHelper(hdu0.header)
 # Create sources, and remove overlapping sources if requested.
 sources = []
 for i, candidate in enumerate(synthetic_source_generator(COUNT, XSIZE, YSIZE, wcshelper)):
-    if not DEDUP or not is_overlapping_source(candidate, sources):
+    if not is_overlapping_source(candidate, sources) and not is_edge(candidate, XSIZE, YSIZE):
         sources.append(candidate)
 
-if DEDUP:
-    logging.info("Started with {}, left with {} after deduping."
-                 .format(COUNT, len(sources)))
+logging.info("Started with {}, left with {} after removing overlaps and edge sources."
+             .format(COUNT, len(sources)))
 
 # Draw the sources onto the data array
 for i, source in enumerate(sources):
