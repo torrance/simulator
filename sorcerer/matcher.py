@@ -12,7 +12,8 @@ def matcher(catalog, sources, wcshelper):
        by no more than 80%
 
     Returns:
-        Either the index of the matching source or False
+        Either the index of the matching source or throws Exception
+        if there is no suitable match.
     """
     # Set up grid to test match against 1 sigma overlap
     r = max(catalog.major, catalog.minor)*1
@@ -62,4 +63,4 @@ def matcher(catalog, sources, wcshelper):
                          .format(catalog.id, source.id, missed/count))
 
     else:
-        return False
+        raise Exception("No match")

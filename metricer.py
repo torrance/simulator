@@ -115,13 +115,14 @@ if DEBUG:
     debug_shapes(catalog, sources, header, shape)
 
 logging.info("Matching up sources...")
-matchings = dict()  # Keys: catalogID; Values: aegeanID
+matchings = dict()  # Keys: catalogID; Values: sourceID
 for i, source in enumerate(catalog):
-    match = matcher(source, sources, wcshelper)
-    if match:
-        matchings[i] = match
+    try:
+        matchings[i] = matcher(source, sources, wcshelper)
+    except:
+        pass
 
-matches = [(catalog[k], sources[v]) for k, v in matchings.items()]
+matches = [(catalog[k], sources[v]) for k, v in matchings.items()]  # (catalog, source)
 ghosts = [source for i, source in enumerate(sources) if i not in matchings.values()]
 misses = [source for i, source in enumerate(catalog) if i not in matchings.keys()]
 logging.info("Sources matched.")
