@@ -2,11 +2,86 @@ import csv
 import math
 from collections import namedtuple
 import numpy as np
+from sorcerer.models import draw_ellipse
+from sorcerer.output import Ellipse
 
 
 Source = namedtuple('Source', ['id', 'loc_x', 'loc_y', 'peak', 'major',
                                'minor', 'pa', 'ra', 'dec', 'wmajor',
                                'wminor', 'wpa', 'total', 'totalerr'])
+
+
+class EllipticalSource:
+    def __init__(self, **kwargs):
+        self.id = kwargs['ID']
+        self.loc_x = kwargs['loc_x']
+        self.loc_y = kwargs['loc_y']
+        self.peak = kwargs['peak']
+        self.major = kwargs['major']
+        self.minor = kwargs['minor']
+        self.pa = kwargs['pa']
+        self.ra = kwargs['ra']
+        self.dec = kwargs['dec']
+        self.wmajor = kwargs['wmajor']
+        self.wminor = kwargs['wminor']
+        self.wpa = kwargs['wpa']
+        self.total = kwargs['total']
+        self.totalerr = kwargs['totalerr']
+
+    def __getitem__(self, key):
+        return (
+            self.id,
+            self.loc_x,
+            self.loc_y,
+            self.peak,
+            self.major,
+            self.minor,
+            self.pa,
+            self.ra,
+            self.dec,
+            self.wmajor,
+            self.wminor,
+            self.wpa,
+            self.total,
+            self.totalerr,
+        )[key]
+
+    def columns(self):
+        return [
+            'ID',
+            'loc_x',
+            'loc_y',
+            'peak',
+            'major',
+            'minor',
+            'pa',
+            'ra',
+            'dec',
+            'wmajor',
+            'wminor',
+            'wpa',
+            'total',
+            'totalerr',
+        ]
+
+    def annotate(self, ann):
+        ann.write_ellipse(self, label=self.id, comment=self.id)
+        for i in np.linspace(1.5, 3, 4):
+            ann.write_ellipse(
+                Ellipse(self.ra, self.dec, self.wmajor*i, self.wminor*i, self.pa),
+                comment=self.id
+            )
+
+    def draw(self, X, Y, magnify=1):
+        return draw_ellipse(X, Y, self.loc_x, self.loc_y, self.major*magnify, self.minor*magnify, self.pa)
+
+    def bounds(self, magnify=1):
+        r = max(self.major, self.minor) * magnify
+        xmin = int(self.loc_x-r)
+        xmax = int(self.loc_x+r)
+        ymin = int(self.loc_y-r)
+        ymax = int(self.loc_y+r)
+        return xmin, xmax, ymin, ymax
 
 
 def synthetic_source_generator(count, xsize, ysize, wcshelper):
@@ -22,28 +97,32 @@ def synthetic_source_generator(count, xsize, ysize, wcshelper):
         )
         total = (2 * np.pi * peak * major * minor) / wcshelper.beamarea_pix()
 
-        yield Source._make([
-            i,       # ID
-            loc_x,   # loc_x
-            loc_y,   # loc_y
-            peak,    # peak
-            major,   # major
-            minor,   # minor
-            pa,      # pa
-            ra,      # ra
-            dec,     # dec
-            wmajor,  # wmajor
-            wminor,  # wminor
-            wpa,     # wpa
-            total,   # total
-            0,       # totalerr
-        ])
+        yield EllipticalSource(
+            ID=i,
+            loc_x=loc_x,
+            loc_y=loc_y,
+            peak=peak,
+            major=major,
+            minor=minor,
+            pa=pa,
+            ra=ra,
+            dec=dec,
+            wmajor=wmajor,
+            wminor=wminor,
+            wpa=wpa,
+            total=total,
+            totalerr=0,
+        )
 
 
 def is_overlapping_source(candidate, sources):
     """
     Return True if candidate is within some threshold viscinity
     of another source.
+
+    Args:
+        candidate: An EllipticalSource instance
+        sources: A list of EllipticalSource instances
     """
     for source in sources:
         min_distance = (max(candidate.major, candidate.minor)
@@ -56,11 +135,7 @@ def is_overlapping_source(candidate, sources):
 
 
 def is_edge(candidate, xsize, ysize):
-    r = max(candidate.major, candidate.minor) * 2
-    xmin = candidate.loc_x - r
-    xmax = candidate.loc_x + r
-    ymin = candidate.loc_y - r
-    ymax = candidate.loc_y + r
+    xmin, xmax, ymin, ymax = candidate.bounds(magnify=2)
     return xmin < 0 or xmax > xsize or ymin < 0 or ymax > ysize
 
 
@@ -79,22 +154,22 @@ def aegean_sources_from_CSV(filename, wcshelper):
                     float(row[16])/3600,
                     float(row[18])
                 )
-                sources.append(Source._make([
-                    int(row[0]),          # ID
-                    ellipse[0],           # loc_x
-                    ellipse[1],           # loc_y
-                    float(row[10]),       # peak
-                    ellipse[2],           # major
-                    ellipse[3],           # minor
-                    ellipse[4],           # angle
-                    float(row[6]),        # ra
-                    float(row[8]),        # dec
-                    float(row[14])/3600,  # wmajor
-                    float(row[16])/3600,  # wminor
-                    float(row[18]),       # wpa
-                    float(row[12]),       # total
-                    float(row[13]),       # totalerr
-                ]))
+                sources.append(EllipticalSource(
+                    ID=int(row[0]),
+                    loc_x=ellipse[0],
+                    loc_y=ellipse[1],
+                    peak=float(row[10]),
+                    major=ellipse[2],
+                    minor=ellipse[3],
+                    angle=ellipse[4],
+                    ra=float(row[6]),
+                    dec=float(row[8]),
+                    wmajor=float(row[14])/3600,
+                    wminor=float(row[16])/3600,
+                    wpa=float(row[18]),
+                    total=float(row[12]),
+                    totalerr=float(row[13]),
+                ))
     return sources
 
 
@@ -113,7 +188,22 @@ def synthetic_sources_from_CSV(filename):
                     source.append(int(val))
                 else:
                     source.append(float(val))
-            sources.append(Source._make(source))
+            sources.append(EllipticalSource(
+                ID=source[0],
+                loc_x=source[1],
+                loc_y=source[2],
+                peak=source[3],
+                major=source[4],
+                minor=source[5],
+                pa=source[6],
+                ra=source[7],
+                dec=source[8],
+                wmajor=source[9],
+                wminor=source[10],
+                wpa=source[11],
+                total=source[12],
+                totalerr=source[13],
+            ))
     return sources
 
 
@@ -139,22 +229,22 @@ def duchamp_sources_from_txt(filename, wcshelper):
                     ellipse[3],
                     float(words[12])
                 )
-                sources.append(Source._make([
-                    int(words[0]),        # ID
-                    ellipse[0],           # loc_x
-                    ellipse[1],           # loc_y
-                    float(words[22]),     # peak
-                    ellipse[2],           # major
-                    ellipse[3],           # minor
-                    float(words[12]),     # pa
-                    float(words[7]),      # ra
-                    float(words[8]),      # dec
-                    float(words[11])/60,  # wmajor
-                    float(words[10])/60,  # wminor
-                    wpa,                  # wpa
-                    float(words[19]),     # total
-                    float(words[20]),     # totalerr
-                ]))
+                sources.append(EllipticalSource(
+                    ID=int(words[0]),
+                    loc_x=ellipse[0],
+                    loc_y=ellipse[1],
+                    peak=float(words[22]),
+                    major=ellipse[2],
+                    minor=ellipse[3],
+                    pa=float(words[12]),
+                    ra=float(words[7]),
+                    dec=float(words[8]),
+                    wmajor=float(words[11])/60,
+                    wminor=float(words[10])/60,
+                    wpa=wpa,
+                    total=float(words[19]),
+                    totalerr=float(words[20]),
+                ))
             except:
                 print("Failed to parse line: {}".format(line))
                 raise

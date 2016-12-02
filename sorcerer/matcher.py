@@ -1,6 +1,5 @@
 import logging
 import numpy as np
-from sorcerer.models import ellipse
 
 
 def matcher(catalog, sources, wcshelper):
@@ -16,38 +15,31 @@ def matcher(catalog, sources, wcshelper):
         if there is no suitable match.
     """
     # Set up grid to test match against 1 sigma overlap
-    r = max(catalog.major, catalog.minor)*1
-    xmin = int(catalog.loc_x-r)
-    xmax = int(catalog.loc_x+r)
-    ymin = int(catalog.loc_y-r)
-    ymax = int(catalog.loc_y+r)
+    xmin, xmax, ymin, ymax = catalog.bounds()
     X, Y = np.mgrid[xmin:xmax+1, ymin:ymax+1]
 
-    catalog_2sigma = ellipse(X, Y, catalog.loc_x, catalog.loc_y,
-                             2*catalog.major, 2*catalog.minor, catalog.pa)
-    count = np.sum(catalog_2sigma)
+    catalog_1sigma = catalog.draw(X, Y)
+    count = np.sum(catalog_1sigma)
 
     for i, source in enumerate(sources):
-        source_ellipse = ellipse(X, Y, source.loc_x, source.loc_y,
-                                 source.major, source.minor, source.pa)
-        missed = np.sum(catalog_2sigma[-source_ellipse])
+        source_box = source.draw(X, Y)
+        missed = np.sum(catalog_1sigma[-source_box])
         if missed/count < 0.05:
             # Now we test for significant overreach beyond 3 sigma
             # First, we create a new grid that is the larger of the two:
             # either the source or the catalog at 3 sigma width
-            r = max(source.major, source.minor, 3*catalog.major, 3*catalog.minor)
-            xmin = int(source.loc_x-r)
-            xmax = int(source.loc_x+r)
-            ymin = int(source.loc_y-r)
-            ymax = int(source.loc_y+r)
+            catalog_bounds = catalog.bounds(magnify=3)
+            source_bounds = source.bounds()
+            xmin = min(catalog_bounds[0], source_bounds[0])
+            xmax = max(catalog_bounds[1], source_bounds[1])
+            ymin = min(catalog_bounds[2], source_bounds[2])
+            ymax = max(catalog_bounds[3], source_bounds[3])
             X3, Y3 = np.mgrid[xmin:xmax+1, ymin:ymax+1]
 
-            catalog_3sigma = ellipse(X3, Y3, catalog.loc_x, catalog.loc_y,
-                                     3*catalog.major, 3*catalog.minor, catalog.pa)
+            catalog_3sigma = catalog.draw(X3, Y3, magnify=3)
             count3 = np.sum(catalog_3sigma)
-            source_ellipse = ellipse(X3, Y3, source.loc_x, source.loc_y,
-                                     source.major, source.minor, source.pa)
-            excess = np.sum(source_ellipse[-catalog_3sigma])
+            source_box = source.draw(X3, Y3)
+            excess = np.sum(source_box[-catalog_3sigma])
             if excess/count3 > 0.8:
                 logging.info("Match excluded: catalog {} and detection {}, but 3 sigma excess is {} of 3 sigma pixels"
                              .format(catalog.id, source.id,  excess/count3))
@@ -63,4 +55,8 @@ def matcher(catalog, sources, wcshelper):
                          .format(catalog.id, source.id, missed/count))
 
     else:
-        raise Exception("No match")
+        raise FailedMatchException("No match")
+
+
+class FailedMatchException(Exception):
+    pass

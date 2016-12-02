@@ -10,7 +10,7 @@ import numpy as np
 from astropy import wcs
 from astropy.convolution import Gaussian2DKernel, convolve
 from astropy.io import fits
-from sorcerer.models import draw_gaussian, Ellipse
+from sorcerer.models import draw_gaussian
 from sorcerer.output import Annotation
 from sorcerer.sources import synthetic_source_generator, is_overlapping_source, is_edge
 from sorcerer.wcs_helpers import WCSHelper
@@ -98,26 +98,12 @@ hdulist.writeto(filename + '.fits')
 # Write out annotation files
 with Annotation(filename + '.ann') as ann:
     for source in sources:
-        # Also write ellipse for 2 and 3 sigma boundary
-        ann.write_ellipse(source, label=source.id, comment=source.id)
-        for i in np.linspace(1.5, 3, 4):
-            world = wcshelper.pix2sky_ellipse(
-                (source.loc_x, source.loc_y),
-                i*source.major,
-                i*source.minor,
-                source.pa
-            )
-            ann.write_ellipse(
-                Ellipse(world[0], world[1], world[2], world[3], source.pa),
-                comment=source.id
-            )
+        source.annotate(ann)
 
 # Write out catalog of Gaussian images
 with open(filename + '.csv', 'w') as csvfile:
     writer = csv.writer(csvfile)
-    writer.writerow(['ID', 'Loc-x', 'Loc-y', 'Peak', 'Major', 'Minor',
-                     'PA', 'RA', 'DEC', 'WMajor', 'WMinor', 'WPA',
-                     'Total', 'TotalErr'])
+    writer.writerow(sources[0].columns())
     for source in sources:
         writer.writerow(source)
 

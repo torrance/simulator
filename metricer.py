@@ -10,8 +10,8 @@ import aplpy
 import matplotlib
 from matplotlib import pyplot as plt
 import numpy as np
-from sorcerer.models import ellipse
-from sorcerer.matcher import matcher
+from sorcerer.matcher import matcher, FailedMatchException
+from sorcerer.models import draw_ellipse
 from sorcerer.sources import aegean_sources_from_CSV, synthetic_sources_from_CSV, duchamp_sources_from_txt
 from sorcerer.wcs_helpers import WCSHelper
 
@@ -42,7 +42,7 @@ def debug_shapes(catalog, sources, header, shape):
         X = X.ravel()
         Y = Y.ravel()
 
-        Z = ellipse(X, Y, source.loc_x, source.loc_y, 2*source.major, 2*source.minor, source.pa)
+        Z = draw_ellipse(X, Y, source.loc_x, source.loc_y, 2*source.major, 2*source.minor, source.pa)
         Xdash = X[Z]
         Ydash = Y[Z]
         data1[Ydash, Xdash] = 1
@@ -56,7 +56,7 @@ def debug_shapes(catalog, sources, header, shape):
         X = X.ravel()
         Y = Y.ravel()
 
-        Z = ellipse(X, Y, source.loc_x, source.loc_y, source.major, source.minor, source.pa)
+        Z = draw_ellipse(X, Y, source.loc_x, source.loc_y, source.major, source.minor, source.pa)
         Xdash = X[Z]
         Ydash = Y[Z]
         data2[Ydash, Xdash] = 1
@@ -119,7 +119,7 @@ matchings = dict()  # Keys: catalogID; Values: sourceID
 for i, source in enumerate(catalog):
     try:
         matchings[i] = matcher(source, sources, wcshelper)
-    except:
+    except FailedMatchException:
         pass
 
 matches = [(catalog[k], sources[v]) for k, v in matchings.items()]  # (catalog, source)

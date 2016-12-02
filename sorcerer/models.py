@@ -1,13 +1,8 @@
-import logging
 import math
-from collections import namedtuple
 import numpy as np
 
 
-Ellipse = namedtuple('Ellipse', ['ra', 'dec', 'wmajor', 'wminor', 'pa'])
-
-
-def ellipse(X, Y, x, y, major, minor, pa):
+def draw_ellipse(X, Y, x, y, major, minor, pa):
     """
     Returns boolean array if (x,y) from X,Y is located in or on the ellipse
 

@@ -1,3 +1,9 @@
+from collections import namedtuple
+
+
+Ellipse = namedtuple('Ellipse', ['ra', 'dec', 'wmajor', 'wminor', 'pa'])
+
+
 class Annotation:
     """
     A simple class to create KVIS annotion files.
