@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import csv
 import logging
 import os.path
 from astropy import wcs
@@ -126,6 +127,30 @@ misses = [source for i, source in enumerate(catalog) if i not in matchings.keys(
 logging.info("Sources matched.")
 
 print("Matched: {} Missed: {} Ghost: {}".format(len(matches), len(misses), len(ghosts)))
+
+# Output CSV of sources
+with open(filename + '-matched.csv', 'w') as f:
+    writer = csv.writer(f)
+    writer.writerow([
+        'Catalog ID', 'Catalog Loc-x', 'Catalog Loc-y', 'Catalog Peak',
+        'Catalog Major', 'Catalog Minor', 'Catalog PA', 'Catalog RA',
+        'Catalog DEC', 'Catalog WMajor', 'Catalog WMinor', 'Catalog WPA',
+        'Catalog Total', 'Catalog TotalErr', 'Measured ID', 'Measured Loc-x',
+        'Measured Loc-y', 'Measured Peak', 'Measured Major', 'Measured Minor',
+        'Measured PA', 'Measured RA', 'Measured DEC', 'Measured WMajor',
+        'Measured WMinor', 'Measured WPA', 'Measured Total',
+        'Measured TotalErr', 'Type'
+    ])
+    empty = [
+        None, None, None, None, None, None, None,
+        None, None, None, None, None, None, None
+    ]
+    for catalog, source in matches:
+        writer.writerow([*catalog, *source, 'MATCH'])
+    for source in misses:
+        writer.writerow([*source, *empty, 'MISS'])
+    for source in ghosts:
+        writer.writerow([*empty, *source, 'GHOST'])
 
 # Let's plot the matches and misses
 logging.info("Creating matched image file...")
