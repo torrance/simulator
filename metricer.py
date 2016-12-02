@@ -162,7 +162,10 @@ fig.show_colorscale(cmap='inferno')
 if len(misses):
     xw = [source.ra for source in misses]
     yw = [source.dec for source in misses]
-    fig.show_markers(xw, yw, c='orange')
+    aw = [source.wminor for source in misses]
+    bw = [source.wmajor for source in misses]
+    pw = [-source.wpa for source in misses]
+    fig.show_ellipses(xw, yw, aw, bw, angle=pw, edgecolor='orange', linewidth=0.6)
 
 # Plot the matches
 if len(matches):
@@ -171,7 +174,7 @@ if len(matches):
     aw = [source[1].wminor for source in matches]
     bw = [source[1].wmajor for source in matches]
     pw = [-source[1].wpa for source in matches]
-    fig.show_ellipses(xw, yw, aw, bw, angle=pw, edgecolor='green', linewidth=1)
+    fig.show_ellipses(xw, yw, aw, bw, angle=pw, edgecolor='green', linewidth=0.6)
 
 # Plot the ghosts
 if len(ghosts):
@@ -180,7 +183,7 @@ if len(ghosts):
     aw = [source.wminor for source in ghosts]
     bw = [source.wmajor for source in ghosts]
     pw = [-source.wpa for source in ghosts]
-    fig.show_ellipses(xw, yw, aw, bw, angle=pw, edgecolor='lightblue', linewidth=1)
+    fig.show_ellipses(xw, yw, aw, bw, angle=pw, edgecolor='lightblue', linewidth=0.6)
 
 fig.add_grid()
 logging.info("Saving matched image...")
@@ -197,6 +200,9 @@ plt.scatter(xs, ys, c='orange')
 xs = [(source[0].major + source[0].minor)/2 for source in matches]
 ys = [source[0].peak for source in matches]
 plt.scatter(xs, ys, c='green')
+xs = [(source.major + source.minor)/2 for source in ghosts]
+ys = [source.peak for source in ghosts]
+plt.scatter(xs, ys, c='lightblue')
 plt.xlabel('Mean size of 1 sigma (pixels)')
 plt.ylabel('Intensity (sigma)')
 plt.savefig(filename + '-scatter.pdf')
