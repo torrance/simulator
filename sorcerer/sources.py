@@ -56,7 +56,7 @@ def is_overlapping_source(candidate, sources):
 
 
 def is_edge(candidate, xsize, ysize):
-    r = max(candidate.major, candidate.minor) * 1.5
+    r = max(candidate.major, candidate.minor) * 2
     xmin = candidate.loc_x - r
     xmax = candidate.loc_x + r
     ymin = candidate.loc_y - r
