@@ -81,6 +81,7 @@ parser.add_argument('--debug', dest='debug', action='store_true')
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('--aegean', dest='aegean')
 group.add_argument('--duchamp', dest='duchamp')
+parser.add_argument('--image', dest='image', action='store_true')
 parser.add_argument('--log', '-l', dest='log', default='WARNING')
 args = parser.parse_args()
 
@@ -89,6 +90,7 @@ AEGEAN = args.aegean
 DUCHAMP = args.duchamp
 FITSFILE = args.fitsfile
 LOGLEVEL = args.log
+IMAGE = args.image
 DEBUG = args.debug
 
 # Configure logging
@@ -154,56 +156,73 @@ with open(filename + '-matched.csv', 'w') as f:
     for source in ghosts:
         writer.writerow([*empty, *source, 'GHOST'])
 
-# Let's plot the matches and misses
-logging.info("Creating matched image file...")
-fig = aplpy.FITSFigure(hdulist[0])
-fig.show_colorscale(cmap='inferno')
+# Create annotation file
+with Annotation(filename + '-matched.ann') as ann:
+    ann.set_color('GREEN')
+    for _, source in matches:
+        source.annotate(ann)
+    ann.set_color('ORANGE')
+    for source in misses:
+        source.annotate(ann)
+    ann.set_color('yellow')
+    for source in ghosts:
+        source.annotate(ann)
 
-# Plot the misses
-if len(misses):
-    xw = [source.ra for source in misses]
-    yw = [source.dec for source in misses]
-    aw = [source.wminor for source in misses]
-    bw = [source.wmajor for source in misses]
-    pw = [-source.wpa for source in misses]
-    fig.show_ellipses(xw, yw, aw, bw, angle=pw, edgecolor='orange', linewidth=0.6)
-
-# Plot the matches
-if len(matches):
-    xw = [source[1].ra for source in matches]
-    yw = [source[1].dec for source in matches]
-    aw = [source[1].wminor for source in matches]
-    bw = [source[1].wmajor for source in matches]
-    pw = [-source[1].wpa for source in matches]
-    fig.show_ellipses(xw, yw, aw, bw, angle=pw, edgecolor='green', linewidth=0.6)
-
-# Plot the ghosts
-if len(ghosts):
-    xw = [source.ra for source in ghosts]
-    yw = [source.dec for source in ghosts]
-    aw = [source.wminor for source in ghosts]
-    bw = [source.wmajor for source in ghosts]
-    pw = [-source.wpa for source in ghosts]
-    fig.show_ellipses(xw, yw, aw, bw, angle=pw, edgecolor='lightblue', linewidth=0.6)
-
-fig.add_grid()
-logging.info("Saving matched image...")
-fig.save(filename + '-matched.png', dpi=320)
-
-# Also create a scatterplot of matches/misses
+# Create a scatterplot of matches/misses
 # x = size; y = intensity
 logging.info("Creating scatter plot...")
 plt.figure('metrics', figsize=(8, 4.5))
 plt.subplot(1, 1, 1)
+
 xs = [(source.major + source.minor)/2 for source in misses]
 ys = [source.peak for source in misses]
 plt.scatter(xs, ys, c='orange')
+
 xs = [(source[0].major + source[0].minor)/2 for source in matches]
 ys = [source[0].peak for source in matches]
 plt.scatter(xs, ys, c='green')
+
 xs = [(source.major + source.minor)/2 for source in ghosts]
 ys = [source.peak for source in ghosts]
 plt.scatter(xs, ys, c='lightblue')
+
 plt.xlabel('Mean size of 1 sigma (pixels)')
 plt.ylabel('Intensity (sigma)')
 plt.savefig(filename + '-scatter.pdf')
+
+if IMAGE:
+    # Let's plot the matches and misses
+    logging.info("Creating matched image file...")
+    fig = aplpy.FITSFigure(hdulist[0])
+    fig.show_colorscale(cmap='inferno')
+
+    # Plot the misses
+    if len(misses):
+        xw = [source.ra for source in misses]
+        yw = [source.dec for source in misses]
+        aw = [source.wminor for source in misses]
+        bw = [source.wmajor for source in misses]
+        pw = [-source.wpa for source in misses]
+        fig.show_ellipses(xw, yw, aw, bw, angle=pw, edgecolor='orange', linewidth=0.6)
+
+    # Plot the matches
+    if len(matches):
+        xw = [source[1].ra for source in matches]
+        yw = [source[1].dec for source in matches]
+        aw = [source[1].wminor for source in matches]
+        bw = [source[1].wmajor for source in matches]
+        pw = [-source[1].wpa for source in matches]
+        fig.show_ellipses(xw, yw, aw, bw, angle=pw, edgecolor='green', linewidth=0.6)
+
+    # Plot the ghosts
+    if len(ghosts):
+        xw = [source.ra for source in ghosts]
+        yw = [source.dec for source in ghosts]
+        aw = [source.wminor for source in ghosts]
+        bw = [source.wmajor for source in ghosts]
+        pw = [-source.wpa for source in ghosts]
+        fig.show_ellipses(xw, yw, aw, bw, angle=pw, edgecolor='lightblue', linewidth=0.6)
+
+    fig.add_grid()
+    logging.info("Saving matched image...")
+    fig.save(filename + '-matched.png', dpi=320)
