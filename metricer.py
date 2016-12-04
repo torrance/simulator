@@ -10,9 +10,10 @@ import aplpy
 import matplotlib
 from matplotlib import pyplot as plt
 import numpy as np
+from sorcerer.output import Annotation
+from sorcerer.input import *
 from sorcerer.matcher import matcher, FailedMatchException
 from sorcerer.models import draw_ellipse
-from sorcerer.sources import aegean_sources_from_CSV, synthetic_sources_from_CSV, duchamp_sources_from_txt
 from sorcerer.wcs_helpers import WCSHelper
 
 # Use Ubuntu because it has greek glpyhs included (ie. mu)
