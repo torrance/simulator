@@ -11,14 +11,14 @@ class Annotation:
        with Annotation(filename) as annotator:
            annotator.write_ellipse(ellipse1)
     """
-    def __init__(self, filename, append=False):
+    def __init__(self, filename, color='BLUE', pa='STANDARD', append=False):
         if append:
             self.file = open(filename, 'a')
         else:
             self.file = open(filename, 'w')
-            self.file.write("PA STANDARD\n")
+            self.file.write("PA {}\n".format(pa))
             self.file.write("COORD W\n")
-            self.file.write("COLOR BLUE\n")
+            self.file.write("COLOR {}\n".format(color))
             self.file.write("\n")
 
     def __enter__(self):
@@ -34,3 +34,6 @@ class Annotation:
             line = "TEXT {} {} {} # {}\n"
             self.file.write(line.format(ellipse.ra, ellipse.dec, label, comment))
         self.file.write("\n")
+
+    def set_color(self, color):
+        self.file.write("COLOR {}\n\n".format(color))

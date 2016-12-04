@@ -98,7 +98,7 @@ hdulist.writeto(filename + '.fits')
 # Write out annotation files
 with Annotation(filename + '.ann') as ann:
     for source in sources:
-        source.annotate(ann)
+        source.annotate(ann, contours=[1.5, 3, 4])
 
 # Write out catalog of Gaussian images
 with open(filename + '.csv', 'w') as csvfile:

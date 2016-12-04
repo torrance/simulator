@@ -64,13 +64,15 @@ class EllipticalSource:
             'totalerr',
         ]
 
-    def annotate(self, ann):
+    def annotate(self, ann, contours=None):
         ann.write_ellipse(self, label=self.id, comment=self.id)
-        for i in np.linspace(1.5, 3, 4):
-            ann.write_ellipse(
-                Ellipse(self.ra, self.dec, self.wmajor*i, self.wminor*i, self.pa),
-                comment=self.id
-            )
+
+        if contours:
+            for i in np.linspace(contours):
+                ann.write_ellipse(
+                    Ellipse(self.ra, self.dec, self.wmajor*i, self.wminor*i, self.pa),
+                    comment=self.id
+                )
 
     def draw(self, X, Y, magnify=1):
         return draw_ellipse(X, Y, self.loc_x, self.loc_y, self.major*magnify, self.minor*magnify, self.pa)
