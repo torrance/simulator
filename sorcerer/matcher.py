@@ -1,4 +1,5 @@
 import logging
+import math
 import numpy as np
 
 
@@ -22,6 +23,15 @@ def matcher(catalog, sources, wcshelper):
     count = np.sum(catalog_1sigma)
 
     for i, source in enumerate(sources):
+        # For speed, we first test for loose locality:
+        # somewhere in the viscinity of 3 sigma of the catalog source
+        max_distance = max(catalog.major, catalog.minor) * 3
+        distance = math.sqrt((catalog.loc_x - source.loc_x)**2 + (catalog.loc_y - source.loc_y)**2)
+        if distance > max_distance:
+            continue
+
+        # It's  close enough, so we go ahead and draw pixels and test for
+        # sufficient overlap.
         source_box = source.draw(X, Y)
         missed = np.sum(catalog_1sigma[-source_box])
         if missed/count < 0.05:
