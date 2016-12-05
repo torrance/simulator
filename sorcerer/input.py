@@ -24,7 +24,7 @@ def aegean_sources_from_CSV(filename, wcshelper):
                     peak=float(row[10]),
                     major=ellipse[2],
                     minor=ellipse[3],
-                    angle=ellipse[4],
+                    pa=ellipse[4],
                     ra=float(row[6]),
                     dec=float(row[8]),
                     wmajor=float(row[14])/3600,
