@@ -1,14 +1,7 @@
-import csv
 import math
-from collections import namedtuple
 import numpy as np
 from sorcerer.models import draw_ellipse, draw_rectangle
 from sorcerer.output import Ellipse
-
-
-Source = namedtuple('Source', ['id', 'loc_x', 'loc_y', 'peak', 'major',
-                               'minor', 'pa', 'ra', 'dec', 'wmajor',
-                               'wminor', 'wpa', 'total', 'totalerr'])
 
 
 class EllipticalSource:
@@ -77,6 +70,18 @@ class EllipticalSource:
 
     def draw(self, X, Y, magnify=1):
         return draw_ellipse(X, Y, self.loc_x, self.loc_y, self.major*magnify, self.minor*magnify, self.pa)
+
+    def show(self, fig, color=None):
+        """Draw self onto APLpy FITSFigure."""
+        fig.show_ellipses(
+            self.ra,
+            self.dec,
+            self.wminor,
+            self.wmajor,
+            angle=-self.wpa,
+            edgecolor=color,
+            linewidth=0.6
+        )
 
     def bounds(self, magnify=1):
         r = max(self.major, self.minor) * magnify
@@ -155,6 +160,14 @@ class RectangularSource:
 
     def draw(self, X, Y):
         return draw_rectangle(X, Y, self.xmin, self.xmax, self.ymin, self.ymax)
+
+    def show(self, fig, color=None):
+        """Draw self onto APLpy FITSFigure."""
+        fig.show_polygons(
+            [np.array([self.wtopleft, self.wtopright, self.wbottomright, self.wbottomleft])],
+            edgecolor=color,
+            linewidth=0.6
+        )
 
     def bounds(self):
         return self.xmin, self.xmax, self.ymin, self.ymax

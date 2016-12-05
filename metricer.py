@@ -134,26 +134,17 @@ print("Matched: {} Missed: {} Ghost: {}".format(len(matches), len(misses), len(g
 # Output CSV of sources
 with open(filename + '-matched.csv', 'w') as f:
     writer = csv.writer(f)
-    writer.writerow([
-        'Catalog ID', 'Catalog Loc-x', 'Catalog Loc-y', 'Catalog Peak',
-        'Catalog Major', 'Catalog Minor', 'Catalog PA', 'Catalog RA',
-        'Catalog DEC', 'Catalog WMajor', 'Catalog WMinor', 'Catalog WPA',
-        'Catalog Total', 'Catalog TotalErr', 'Measured ID', 'Measured Loc-x',
-        'Measured Loc-y', 'Measured Peak', 'Measured Major', 'Measured Minor',
-        'Measured PA', 'Measured RA', 'Measured DEC', 'Measured WMajor',
-        'Measured WMinor', 'Measured WPA', 'Measured Total',
-        'Measured TotalErr', 'Type'
-    ])
-    empty = [
-        None, None, None, None, None, None, None,
-        None, None, None, None, None, None, None
-    ]
+    # Creating CSV headers will fail if there are no matches at all.
+    # We just blow up in that case.
+    writer.writerow(matches[0][0].columns() + matches[0][1].columns())
+    emptyCatalog = [None] * len(matches[0][0].columns())
+    emptySource = [None] * len(matches[0][1].columns())
     for catalog, source in matches:
         writer.writerow([*catalog, *source, 'MATCH'])
     for source in misses:
-        writer.writerow([*source, *empty, 'MISS'])
+        writer.writerow([*source, *emptySource, 'MISS'])
     for source in ghosts:
-        writer.writerow([*empty, *source, 'GHOST'])
+        writer.writerow([*emptyCatalog, *source, 'GHOST'])
 
 # Create annotation file
 with Annotation(filename + '-matched.ann') as ann:
@@ -196,31 +187,16 @@ if IMAGE:
     fig.show_colorscale(cmap='inferno')
 
     # Plot the misses
-    if len(misses):
-        xw = [source.ra for source in misses]
-        yw = [source.dec for source in misses]
-        aw = [source.wminor for source in misses]
-        bw = [source.wmajor for source in misses]
-        pw = [-source.wpa for source in misses]
-        fig.show_ellipses(xw, yw, aw, bw, angle=pw, edgecolor='orange', linewidth=0.6)
+    for source in misses:
+        source.show(fig, color='orange')
 
     # Plot the matches
-    if len(matches):
-        xw = [source[1].ra for source in matches]
-        yw = [source[1].dec for source in matches]
-        aw = [source[1].wminor for source in matches]
-        bw = [source[1].wmajor for source in matches]
-        pw = [-source[1].wpa for source in matches]
-        fig.show_ellipses(xw, yw, aw, bw, angle=pw, edgecolor='green', linewidth=0.6)
+    for _, source in matches:
+        source.show(fig, color='green')
 
     # Plot the ghosts
-    if len(ghosts):
-        xw = [source.ra for source in ghosts]
-        yw = [source.dec for source in ghosts]
-        aw = [source.wminor for source in ghosts]
-        bw = [source.wmajor for source in ghosts]
-        pw = [-source.wpa for source in ghosts]
-        fig.show_ellipses(xw, yw, aw, bw, angle=pw, edgecolor='lightblue', linewidth=0.6)
+    for source in ghosts:
+        source.show(fig, color='lightblue')
 
     fig.add_grid()
     logging.info("Saving matched image...")
