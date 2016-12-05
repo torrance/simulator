@@ -7,9 +7,9 @@ def matcher(catalog, sources, wcshelper):
     """
     We establish a source match if two conditions hold:
     1. the source ellipse overlaps the 1 sigma region of the catalog
-       by more than 95%
+       by more than 90%
     2. the source ellipse exceeds the 3 sigma region of the catalog
-       by no more than 80%
+       by no more than 100%
 
     Returns:
         Either the index of the matching source or throws Exception
@@ -34,7 +34,7 @@ def matcher(catalog, sources, wcshelper):
         # sufficient overlap.
         source_box = source.draw(X, Y)
         missed = np.sum(catalog_1sigma[-source_box])
-        if missed/count < 0.05:
+        if missed/count < 0.1:
             # Now we test for significant overreach beyond 3 sigma
             # First, we create a new grid that is the larger of the two:
             # either the source or the catalog at 3 sigma width
@@ -50,7 +50,7 @@ def matcher(catalog, sources, wcshelper):
             count3 = np.sum(catalog_3sigma)
             source_box = source.draw(X3, Y3)
             excess = np.sum(source_box[-catalog_3sigma])
-            if excess/count3 > 0.8:
+            if excess/count3 > 1.0:
                 logging.info("Match excluded: catalog {} and detection {}, but 3 sigma excess is {} of 3 sigma pixels"
                              .format(catalog.id, source.id,  excess/count3))
             else:
@@ -60,7 +60,7 @@ def matcher(catalog, sources, wcshelper):
                                      missed/count,
                                      excess/count3))
                 return i
-        elif missed/count < 0.5:
+        elif missed/count < 0.9:
             logging.info("Close match: catalog {} and detection {}, missing {} of 1 sigma pixels"
                          .format(catalog.id, source.id, missed/count))
 
