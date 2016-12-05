@@ -1,5 +1,5 @@
 import csv
-from sorcerer.sources import EllipticalSource
+from sorcerer.sources import EllipticalSource, RectangularSource
 
 
 def aegean_sources_from_CSV(filename, wcshelper):
@@ -75,6 +75,7 @@ def duchamp_sources_from_txt(filename, wcshelper):
     with open(filename) as f:
         for line in f:
             try:
+                line = line.strip()
                 if line[0] == '#':
                     continue
                 words = line.split()
@@ -115,4 +116,40 @@ def duchamp_sources_from_txt(filename, wcshelper):
 
 
 def blobcat_sources_from_txt(filename, wcshelper):
-    pass
+    sources = []
+    with open(filename) as f:
+        for line in f:
+            line = line.strip()
+            if line[0] == '#':
+                continue
+            words = line.split()
+
+            xmin = int(words[18])
+            xmax = int(words[19])
+            ymin = int(words[20])
+            ymax = int(words[21])
+            wtopleft = wcshelper.pix2sky((xmin, ymax))
+            wtopright = wcshelper.pix2sky((xmax, ymax))
+            wbottomright = wcshelper.pix2sky((xmax, ymin))
+            wbottomleft = wcshelper.pix2sky((xmin, ymin))
+
+            sources.append(RectangularSource(
+                ID=int(words[0]),
+                loc_x=float(words[2]),
+                loc_y=float(words[3]),
+                peak=float(words[32]),
+                xmin=xmin,
+                xmax=xmax,
+                ymin=ymin,
+                ymax=ymax,
+                ra=float(words[4]),
+                dec=float(words[5]),
+                wtopleft=wtopleft,
+                wtopright=wtopright,
+                wbottomright=wbottomright,
+                wbottomleft=wbottomleft,
+                total=float(words[37]),
+                totalerr=float(words[38]),
+            ))
+
+    return sources

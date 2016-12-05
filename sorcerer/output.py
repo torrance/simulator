@@ -27,13 +27,28 @@ class Annotation:
     def __exit__(self, exc_type, exc_value, traceback):
         self.file.close()
 
-    def write_ellipse(self, ellipse, label=None, comment=None):
+    def write_ellipse(self, ellipse, comment=None):
         line = "ELLIPSE {} {} {} {} {} # {}\n"
+        if comment:
+            line += " # {}".format(comment)
+        line += "\n"
         self.file.write(line.format(ellipse.ra, ellipse.dec, ellipse.wmajor, ellipse.wminor, ellipse.pa, comment))
-        if label:
-            line = "TEXT {} {} {} # {}\n"
-            self.file.write(line.format(ellipse.ra, ellipse.dec, label, comment))
-        self.file.write("\n")
+
+    def write_clines(self, vertices, label=None, comment=None):
+        line = "CLINES "
+        for vertex in vertices:
+            line += " {} {}".format(*vertex)
+        if comment:
+            line += " # {}".format(comment)
+        line += "\n"
+        self.file.write(line)
+
+    def write_text(self, ra, dec, text, comment=None):
+        line = "TEXT {} {} {}".format(ra, dec, text)
+        if comment:
+            line += " # {}".format(comment)
+        line += "\n"
+        self.file.write(line)
 
     def set_color(self, color):
         self.file.write("COLOR {}\n\n".format(color))

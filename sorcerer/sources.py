@@ -2,7 +2,7 @@ import csv
 import math
 from collections import namedtuple
 import numpy as np
-from sorcerer.models import draw_ellipse
+from sorcerer.models import draw_ellipse, draw_rectangle
 from sorcerer.output import Ellipse
 
 
@@ -65,10 +65,11 @@ class EllipticalSource:
         ]
 
     def annotate(self, ann, contours=None):
-        ann.write_ellipse(self, label=self.id, comment=self.id)
+        ann.write_text(self.ra, self.dec, self.id)
+        ann.write_ellipse(self, comment=self.id)
 
         if contours:
-            for i in np.linspace(contours):
+            for i in np.linspace(*contours):
                 ann.write_ellipse(
                     Ellipse(self.ra, self.dec, self.wmajor*i, self.wminor*i, self.pa),
                     comment=self.id
@@ -84,6 +85,82 @@ class EllipticalSource:
         ymin = int(self.loc_y-r)
         ymax = int(self.loc_y+r)
         return xmin, xmax, ymin, ymax
+
+    def mean_width(self):
+        return (self.major + self.minor)/2
+
+
+class RectangularSource:
+    def __init__(self, **kwargs):
+        self.id = kwargs['ID']
+        self.loc_x = kwargs['loc_x']
+        self.loc_y = kwargs['loc_y']
+        self.peak = kwargs['peak']
+        self.xmin = kwargs['xmin']
+        self.xmax = kwargs['xmax']
+        self.ymin = kwargs['ymin']
+        self.ymax = kwargs['ymax']
+        self.ra = kwargs['ra']
+        self.dec = kwargs['dec']
+        self.wtopleft = kwargs['wtopleft']
+        self.wtopright = kwargs['wtopright']
+        self.wbottomright = kwargs['wbottomright']
+        self.wbottomleft = kwargs['wbottomleft']
+        self.total = kwargs['total']
+        self.totalerr = kwargs['totalerr']
+
+    def __getitem__(self, key):
+        return (
+            self.id,
+            self.loc_x,
+            self.loc_y,
+            self.peak,
+            self.xmin,
+            self.xmax,
+            self.ymin,
+            self.ymax,
+            self.ra,
+            self.dec,
+            self.wtopleft,
+            self.wtopright,
+            self.wbottomright,
+            self.wbottomleft,
+            self.total,
+            self.totalerr,
+        )[key]
+
+    def columns(self):
+        return [
+            'ID',
+            'loc_x',
+            'loc_y',
+            'peak',
+            'xmin',
+            'xmax',
+            'ymin',
+            'ymax',
+            'ra',
+            'dec',
+            'wtopleft',
+            'wtopright',
+            'wbottomright',
+            'wbottomleft',
+            'total',
+            'totalerr',
+        ]
+
+    def annotate(self, ann):
+        ann.write_text(self.ra, self.dec, self.id)
+        ann.write_clines([self.wtopleft, self.wtopright, self.wbottomright, self.wbottomleft, self.wtopleft])
+
+    def draw(self, X, Y):
+        return draw_rectangle(X, Y, self.xmin, self.xmax, self.ymin, self.ymax)
+
+    def bounds(self):
+        return self.xmin, self.xmax, self.ymin, self.ymax
+
+    def mean_width(self):
+        return ((self.xmax - self.xmin)/2 + (self.ymax - self.ymin))/2
 
 
 def synthetic_source_generator(count, xsize, ysize, wcshelper):

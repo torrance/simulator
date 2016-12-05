@@ -20,6 +20,20 @@ def draw_ellipse(X, Y, x, y, major, minor, pa):
     return (Xdash**2 / major**2 + (Ydash)**2 / minor**2 <= 1)
 
 
+def draw_rectangle(X, Y, xmin, xmax, ymin, ymax):
+    """
+    Returns boolean array if (x,y) from X,Y is located in or on the rectangle
+
+    Args:
+        X, Y: numpy arrays of equal length, from which we generate
+              cartesian coordinate pairs
+        xmin, xmax, ymin, ymax: The closed boundaries of the square
+    """
+    Xs = np.logical_and(X >= xmin, X <= xmax)
+    Ys = np.logical_and(Y >= ymin, Y <= ymax)
+    return np.logical_and(Xs, Ys)
+
+
 def elliptical_gaussian(X, Y, x, y, amp, major, minor, pa):
     """
     Generate a model 2d Gaussian with the given parameters.

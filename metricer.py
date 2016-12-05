@@ -34,44 +34,38 @@ def debug_shapes(catalog, sources, header, shape):
     maxY, maxX = maxY-1, maxX-1  # Allow for zero-indexing
 
     for source in catalog:
-        r = max(source.major, source.minor)*2
-        xmin = max(0, int(source.loc_x-r))
-        xmax = min(maxX, int(source.loc_x+r))
-        ymin = max(0, int(source.loc_y-r))
-        ymax = min(maxX, int(source.loc_y+r))
+        xmin, xmax, ymin, ymax = source.bounds()
+        xmin = max(0, xmin)
+        xmax = min(xmax, maxX)
+        ymin = max(0, ymin)
+        ymax = min(ymax, maxY)
         X, Y = np.mgrid[xmin:xmax+1, ymin:ymax+1]
         X = X.ravel()
         Y = Y.ravel()
-
-        Z = draw_ellipse(X, Y, source.loc_x, source.loc_y, 2*source.major, 2*source.minor, source.pa)
-        Xdash = X[Z]
-        Ydash = Y[Z]
-        data1[Ydash, Xdash] = 1
+        Z = source.draw(X, Y)
+        data1[Y, X] = Z
     for source in sources:
-        r = max(source.major, source.minor)
-        xmin = max(0, int(source.loc_x-r))
-        xmax = min(maxX, int(source.loc_x+r))
-        ymin = max(0, int(source.loc_y-r))
-        ymax = min(maxX, int(source.loc_y+r))
+        xmin, xmax, ymin, ymax = source.bounds()
+        xmin = max(0, xmin)
+        xmax = min(xmax, maxX)
+        ymin = max(0, ymin)
+        ymax = min(ymax, maxY)
         X, Y = np.mgrid[xmin:xmax+1, ymin:ymax+1]
         X = X.ravel()
         Y = Y.ravel()
-
-        Z = draw_ellipse(X, Y, source.loc_x, source.loc_y, source.major, source.minor, source.pa)
-        Xdash = X[Z]
-        Ydash = Y[Z]
-        data2[Ydash, Xdash] = 1
+        Z = source.draw(X, Y)
+        data2[Y, X] = Z
 
     hdu0 = fits.PrimaryHDU(data1)
     hdu0.header = header
     hdu1 = fits.ImageHDU(data2)
     hdu1.header += wcs.WCS(header).to_header()
-    hdulist1 = fits.HDUList([hdu0, hdu1])
+    hdulist = fits.HDUList([hdu0, hdu1])
     try:
         os.remove('debug_shapes.fits')
     except:
         pass
-    hdulist1.writeto('debug_shapes.fits')
+    hdulist.writeto('debug_shapes.fits')
 
 
 parser = argparse.ArgumentParser(description='Compare source detections against catalog.')
@@ -81,6 +75,7 @@ parser.add_argument('--debug', dest='debug', action='store_true')
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('--aegean', dest='aegean')
 group.add_argument('--duchamp', dest='duchamp')
+group.add_argument('--blobcat', dest='blobcat')
 parser.add_argument('--image', dest='image', action='store_true')
 parser.add_argument('--log', '-l', dest='log', default='WARNING')
 args = parser.parse_args()
@@ -88,6 +83,7 @@ args = parser.parse_args()
 CATALOG = args.catalog
 AEGEAN = args.aegean
 DUCHAMP = args.duchamp
+BLOBCAT = args.blobcat
 FITSFILE = args.fitsfile
 LOGLEVEL = args.log
 IMAGE = args.image
@@ -109,6 +105,9 @@ if AEGEAN:
 elif DUCHAMP:
     filename = DUCHAMP
     sources = duchamp_sources_from_txt(filename, wcshelper)
+elif BLOBCAT:
+    filename = BLOBCAT
+    sources = blobcat_sources_from_txt(filename, wcshelper)
 filename = os.path.splitext(filename)[0]
 
 # Debugging
@@ -174,15 +173,15 @@ logging.info("Creating scatter plot...")
 plt.figure('metrics', figsize=(8, 4.5))
 plt.subplot(1, 1, 1)
 
-xs = [(source.major + source.minor)/2 for source in misses]
+xs = [source.mean_width() for source in misses]
 ys = [source.peak for source in misses]
 plt.scatter(xs, ys, c='orange')
 
-xs = [(source[0].major + source[0].minor)/2 for source in matches]
+xs = [source[0].mean_width() for source in matches]
 ys = [source[0].peak for source in matches]
 plt.scatter(xs, ys, c='green')
 
-xs = [(source.major + source.minor)/2 for source in ghosts]
+xs = [source.mean_width() for source in ghosts]
 ys = [source.peak for source in ghosts]
 plt.scatter(xs, ys, c='lightblue')
 
