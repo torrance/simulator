@@ -83,8 +83,8 @@ def duchamp_sources_from_txt(filename, wcshelper):
                 # and major and minor appear to be reversed.
                 ellipse = wcshelper.sky2pix_ellipse(
                     (float(words[7]), float(words[8])),
-                    float(words[11])/60,
-                    float(words[10])/60,
+                    float(words[11])/3600,
+                    float(words[10])/3600,
                     float(words[12]),
                 )
                 _, _, _, _, wpa = wcshelper.pix2sky_ellipse(
@@ -103,8 +103,8 @@ def duchamp_sources_from_txt(filename, wcshelper):
                     pa=float(words[12]),
                     ra=float(words[7]),
                     dec=float(words[8]),
-                    wmajor=float(words[11])/60,
-                    wminor=float(words[10])/60,
+                    wmajor=float(words[11])/3600,
+                    wminor=float(words[10])/3600,
                     wpa=wpa,
                     total=float(words[19]),
                     totalerr=float(words[20]),
