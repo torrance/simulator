@@ -70,8 +70,10 @@ hdu0.header += w.to_header()
 wcshelper = WCSHelper(hdu0.header)
 
 # Create sources, and remove overlapping sources if requested.
+candidates = list(synthetic_source_generator(COUNT, XSIZE, YSIZE, wcshelper))
+candidates.sort(reverse=True, key=lambda candidate: candidate.mean_width())
 sources = []
-for i, candidate in enumerate(synthetic_source_generator(COUNT, XSIZE, YSIZE, wcshelper)):
+for candidate in candidates:
     if not is_overlapping_source(candidate, sources) and not is_edge(candidate, XSIZE, YSIZE):
         sources.append(candidate)
 
