@@ -6,15 +6,20 @@ import logging
 import math
 import time
 import aplpy
+import matplotlib
 import numpy as np
 from astropy import wcs
 from astropy.convolution import Gaussian2DKernel, convolve
 from astropy.io import fits
+from matplotlib import pyplot as plt
 from sorcerer.models import draw_gaussian
 from sorcerer.output import Annotation
 from sorcerer.sources import synthetic_source_generator, is_overlapping_source, is_edge
 from sorcerer.wcs_helpers import WCSHelper
 
+# Use Ubuntu because it has greek glpyhs included (ie. mu)
+matplotlib.rcParams['font.family'] = 'Ubuntu'
+matplotlib.rcParams['font.size'] = '15.0'
 
 parser = argparse.ArgumentParser(description='Generate a FITS radio image file.')
 parser.add_argument('--xsize', '-x', dest='xsize', default=2000, type=int)
@@ -29,6 +34,8 @@ YSIZE = args.ysize
 COUNT = args.count
 DISTRIBUTION = args.distribution
 LOGLEVEL = args.log
+
+filename = "simulated-" + time.strftime("%Y-%b-%d-%H%M")
 
 # Configure logging
 numeric_level = getattr(logging, LOGLEVEL.upper(), None)
@@ -66,6 +73,20 @@ for i, candidate in enumerate(synthetic_source_generator(COUNT, XSIZE, YSIZE, wc
 
 logging.info("Started with {}, left with {} after removing overlaps and edge sources."
              .format(COUNT, len(sources)))
+
+# Create a scatterplot of sources for early analysis
+# x = size; y = intensity
+logging.info("Creating scatter plot...")
+plt.figure('metrics', figsize=(8, 4.5))
+plt.subplot(1, 1, 1)
+
+xs = [source.mean_width() for source in sources]
+ys = [source.peak for source in sources]
+plt.scatter(xs, ys, c='lightblue')
+
+plt.xlabel('Mean size of 1 sigma (pixels)')
+plt.ylabel('Intensity (sigma)')
+plt.savefig(filename + '-scatter.pdf')
 
 # Draw the sources onto the data array
 for i, source in enumerate(sources):
