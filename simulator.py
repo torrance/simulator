@@ -54,7 +54,7 @@ data = np.zeros((YSIZE, XSIZE))
 w = wcs.WCS(naxis=2)
 w.wcs.crpix = [int(XSIZE/2), int(YSIZE/2)]
 w.wcs.crval = [0, 0]
-w.wcs.cdelt = [0.005, 0.005]
+w.wcs.cdelt = [0.0005, 0.0005]
 w.wcs.ctype = ["RA---ZEA", "DEC--ZEA"]
 w.wcs.equinox = 2000.0
 
