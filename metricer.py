@@ -95,8 +95,9 @@ if not isinstance(numeric_level, int):
     raise ValueError('Invalid log level: {}'.format(LOGLEVEL))
 logging.basicConfig(level=numeric_level)
 
-hdulist = fits.open(FITSFILE)
-wcshelper = WCSHelper(hdulist[0].header)
+wcshelper = WCSHelper(fits.getheader(FITSFILE))
+if DEBUG or IMAGE:
+    hdulist = fits.open(FITSFILE, memmap=True)
 
 catalog = synthetic_sources_from_CSV(CATALOG)
 if AEGEAN:
