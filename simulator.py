@@ -26,6 +26,8 @@ parser.add_argument('--xsize', '-x', dest='xsize', default=2000, type=int)
 parser.add_argument('--ysize', '-y', dest='ysize', default=2000, type=int)
 parser.add_argument('--count', '-c', dest='count', default=50, type=int)
 parser.add_argument('--dist', dest='distribution', default='normal', choices=['normal', 'uniform'])
+parser.add_argument('--image', dest='image', action='store_true')
+parser.add_argument('--embed-original', dest='embed', action='store_true')
 parser.add_argument('--log', '-l', dest='log', default='WARNING')
 args = parser.parse_args()
 
@@ -34,6 +36,8 @@ YSIZE = args.ysize
 COUNT = args.count
 DISTRIBUTION = args.distribution
 LOGLEVEL = args.log
+IMAGE = args.image
+EMBED = args.embed
 
 filename = "simulated-" + time.strftime("%Y-%b-%d-%H%M")
 
@@ -93,9 +97,10 @@ for i, source in enumerate(sources):
     logging.info("Drawing source {}/{}...".format(i+1, len(sources)))
     draw_gaussian(source, data)
 
-# Hold onto a copy of the data prior to adding noise, so that we can use this for contours
-hdu1 = fits.ImageHDU(np.copy(data))
-hdu1.header += w.to_header()
+# Hold onto a copy of the data prior to adding noise
+if EMBED:
+    hdu1 = fits.ImageHDU(np.copy(data))
+    hdu1.header += w.to_header()
 
 # Add noise
 # We want a sigma of 1 for background, but this will be significantly decreased after
@@ -112,8 +117,10 @@ data = convolve(data, kernel)
 
 logging.info("Saving fits file...")
 hdu0.data = data
-hdulist = fits.HDUList([hdu0, hdu1])
-filename = "simulated-" + time.strftime("%Y-%b-%d-%H%M")
+if EMBED:
+    hdulist = fits.HDUList([hdu0, hdu1])
+else:
+    hdulist = fits.HDUList([hdu0])
 hdulist.writeto(filename + '.fits')
 
 # Write out annotation files
@@ -129,12 +136,13 @@ with open(filename + '.csv', 'w') as csvfile:
         writer.writerow(source)
 
 # Also create pretty image filename
-logging.info("Creating image file...")
-fig = aplpy.FITSFigure(hdulist[0])
-logging.info("Applying contours...")
-fig.show_contour(hdulist[1], levels=[1.01, 1.5, 2, 3, 5])
-logging.info("Generating colorscale image")
-fig.show_colorscale(cmap='inferno')
-fig.add_grid()
-logging.info("Done. Saving...")
-fig.save(filename + '.png', dpi=320)
+if IMAGE:
+    logging.info("Creating image file...")
+    fig = aplpy.FITSFigure(hdulist[0])
+    logging.info("Applying contours...")
+    fig.show_contour(hdulist[1], levels=[1.01, 1.5, 2, 3, 5])
+    logging.info("Generating colorscale image")
+    fig.show_colorscale(cmap='inferno')
+    fig.add_grid()
+    logging.info("Done. Saving...")
+    fig.save(filename + '.png', dpi=320)
