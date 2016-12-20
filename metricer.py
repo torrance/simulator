@@ -136,6 +136,7 @@ misses = [source for i, source in enumerate(catalog) if i not in matchings.keys(
 logging.info("Sources matched.")
 
 print("Matched: {} Missed: {} Ghost: {}".format(len(matches), len(misses), len(ghosts)))
+print("False positive rate: {}%".format(len(ghosts)/len(matches)*100))
 
 # Output CSV of sources
 with open(filename + '-matched.csv', 'w') as f:
