@@ -173,7 +173,7 @@ class RectangularSource:
         return self.xmin, self.xmax, self.ymin, self.ymax
 
     def mean_width(self):
-        return ((self.xmax - self.xmin)/2 + (self.ymax - self.ymin))/2
+        return ((self.xmax - self.xmin)/2 + (self.ymax - self.ymin)/2)/2
 
 
 def synthetic_source_generator(count, xsize, ysize, wcshelper):
