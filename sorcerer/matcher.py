@@ -34,7 +34,7 @@ def matcher(catalog, sources, wcshelper):
         # sufficient overlap.
         source_box = source.draw(X, Y)
         missed = np.sum(catalog_1sigma[-source_box])
-        if missed/count < 0.1:
+        if missed/count < 0.05:
             # Now we test for significant overreach beyond 3 sigma
             # First, we create a new grid that is the larger of the two:
             # either the source or the catalog at 3 sigma width
