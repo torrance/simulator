@@ -1,4 +1,5 @@
 import csv
+import numpy as np
 from sorcerer.sources import EllipticalSource, RectangularSource
 
 
@@ -150,6 +151,43 @@ def blobcat_sources_from_txt(filename, wcshelper):
                 wbottomleft=wbottomleft,
                 total=float(words[37]),
                 totalerr=float(words[38]),
+            ))
+
+    return sources
+
+
+def oddity_sources_from_csv(filename, wcshelper):
+    sources = []
+    with open(filename) as f:
+        reader = csv.reader(f)
+        next(reader)  # Skip header
+        next(reader)  # Skip units
+        for row in reader:
+            x1, y1, x2, y2 = float(row[1]), float(row[2]), float(row[3]), float(row[4])
+            center = (np.mean([x1, x2]), np.mean([y1, y2]))
+            wcenter = wcshelper.pix2sky(center)
+            wtopleft = wcshelper.pix2sky((x1, y2))
+            wtopright = wcshelper.pix2sky((x2, y2))
+            wbottomright = wcshelper.pix2sky((x2, y1))
+            wbottomleft = wcshelper.pix2sky((x1, y1))
+
+            sources.append(RectangularSource(
+                ID=int(row[0]),
+                loc_x=center[0],
+                loc_y=center[1],
+                peak=5,
+                xmin=x1,
+                xmax=x2,
+                ymin=y1,
+                ymax=y2,
+                ra=wcenter[0],
+                dec=wcenter[1],
+                wtopleft=wtopleft,
+                wtopright=wtopright,
+                wbottomright=wbottomright,
+                wbottomleft=wbottomleft,
+                total=0,
+                totalerr=0,
             ))
 
     return sources
