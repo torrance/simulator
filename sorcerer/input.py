@@ -175,7 +175,7 @@ def oddity_sources_from_csv(filename, wcshelper):
                 ID=int(row[0]),
                 loc_x=center[0],
                 loc_y=center[1],
-                peak=5,
+                peak=float(row[8]),
                 xmin=x1,
                 xmax=x2,
                 ymin=y1,
@@ -186,7 +186,47 @@ def oddity_sources_from_csv(filename, wcshelper):
                 wtopright=wtopright,
                 wbottomright=wbottomright,
                 wbottomleft=wbottomleft,
-                total=0,
+                total=float(row[6]),
+                totalerr=0,
+            ))
+
+    return sources
+
+
+def selavy_sources_from_txt(filename, wcshelper):
+    sources = []
+    with open(filename) as f:
+        for line in f:
+            line = line.strip()
+            if line[0] == '#':
+                continue
+
+            words = line.split()
+
+            x1, x2, y1, y2 = float(words[13]), float(words[14]), float(words[15]), float(words[16])
+            center = (np.mean([x1, x2]), np.mean([y1, y2]))
+            wcenter = wcshelper.pix2sky(center)
+            wtopleft = wcshelper.pix2sky((x1, y2))
+            wtopright = wcshelper.pix2sky((x2, y2))
+            wbottomright = wcshelper.pix2sky((x2, y1))
+            wbottomleft = wcshelper.pix2sky((x1, y1))
+
+            sources.append(RectangularSource(
+                ID=words[0],
+                loc_x=center[0],
+                loc_y=center[1],
+                peak=float(words[12]),
+                xmin=x1,
+                xmax=x2,
+                ymin=y1,
+                ymax=y2,
+                ra=wcenter[0],
+                dec=wcenter[1],
+                wtopleft=wtopleft,
+                wtopright=wtopright,
+                wbottomright=wbottomright,
+                wbottomleft=wbottomleft,
+                total=float(words[11]),
                 totalerr=0,
             ))
 

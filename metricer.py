@@ -77,6 +77,7 @@ group.add_argument('--aegean', dest='aegean')
 group.add_argument('--duchamp', dest='duchamp')
 group.add_argument('--blobcat', dest='blobcat')
 group.add_argument('--oddity', dest='oddity')
+group.add_argument('--selavy', dest='selavy')
 parser.add_argument('--image', dest='image', action='store_true')
 parser.add_argument('--log', '-l', dest='log', default='WARNING')
 args = parser.parse_args()
@@ -86,6 +87,7 @@ AEGEAN = args.aegean
 DUCHAMP = args.duchamp
 BLOBCAT = args.blobcat
 ODDITY = args.oddity
+SELAVY = args.selavy
 FITSFILE = args.fitsfile
 LOGLEVEL = args.log
 IMAGE = args.image
@@ -114,6 +116,10 @@ elif BLOBCAT:
 elif ODDITY:
     filename = ODDITY
     sources = oddity_sources_from_csv(filename, wcshelper)
+elif SELAVY:
+    filename = SELAVY
+    sources = selavy_sources_from_txt(filename, wcshelper)
+
 filename = os.path.splitext(filename)[0]
 
 # Debugging
