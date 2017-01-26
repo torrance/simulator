@@ -100,9 +100,8 @@ for i, source in enumerate(sources):
     draw_gaussian(source, data)
 
 # Hold onto a copy of the data prior to adding noise
-if EMBED:
-    hdu1 = fits.ImageHDU(np.copy(data))
-    hdu1.header += w.to_header()
+hdu1 = fits.ImageHDU(np.copy(data))
+hdu1.header += w.to_header()
 
 # Add noise
 # We want a sigma of 1 for background, but this will be significantly decreased after
@@ -142,7 +141,7 @@ if IMAGE:
     logging.info("Creating image file...")
     fig = aplpy.FITSFigure(hdulist[0])
     logging.info("Applying contours...")
-    fig.show_contour(hdulist[1], levels=[1.01, 1.5, 2, 3, 5])
+    fig.show_contour(hdu1, levels=[1.01, 1.5, 3, 7])
     logging.info("Generating colorscale image")
     fig.show_colorscale(cmap='inferno')
     fig.add_grid()
