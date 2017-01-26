@@ -50,7 +50,8 @@ def matcher(catalog, sources, wcshelper):
             count3 = np.sum(catalog_3sigma)
             source_box = source.draw(X3, Y3)
             excess = np.sum(source_box[-catalog_3sigma])
-            if excess/count3 > 1.0:
+            # For small sources, we consider a bounding box of up to 100px x 100px a match.
+            if np.sum(source_box) > 10000 and excess/count3 > 1.0:
                 logging.info("Match excluded: catalog {} and detection {}, but 3 sigma excess is {} of 3 sigma pixels"
                              .format(catalog.id, source.id,  excess/count3))
             else:
