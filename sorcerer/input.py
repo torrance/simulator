@@ -107,7 +107,7 @@ def duchamp_sources_from_txt(filename, wcshelper):
                     wmajor=float(words[11])/3600,
                     wminor=float(words[10])/3600,
                     wpa=wpa,
-                    total=float(words[19]),
+                    total=float(words[20]) / wcshelper.beamarea_pix(),
                     totalerr=float(words[20]),
                 ))
             except:
