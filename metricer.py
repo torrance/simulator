@@ -155,7 +155,7 @@ with open(filename + '-matched.csv', 'w') as f:
     writer = csv.writer(f)
     # Creating CSV headers will fail if there are no matches at all.
     # We just blow up in that case.
-    writer.writerow(matches[0][0].columns() + matches[0][1].columns())
+    writer.writerow(matches[0][0].columns() + matches[0][1].columns() + ['state'])
     emptyCatalog = [None] * len(matches[0][0].columns())
     emptySource = [None] * len(matches[0][1].columns())
     for catalog, source in matches:
