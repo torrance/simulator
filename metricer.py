@@ -130,13 +130,19 @@ if DEBUG:
 
 logging.info("Matching up sources...")
 matchings = dict()  # Keys: catalogID; Values: sourceID
+close_matches = dict()
 for i, source in enumerate(catalog):
     try:
-        matchings[i] = matcher(source, sources, wcshelper)
+        match, match_type = matcher(source, sources, wcshelper)
+        if match_type == 'match':
+            matchings[i] = match
+        elif match_type == 'close':
+            close_matches[i] = match
     except FailedMatchException:
         pass
 
 matches = [(catalog[k], sources[v]) for k, v in matchings.items()]  # (catalog, source)
+close_matches = [(catalog[k], sources[v]) for k, v in close_matches.items()]
 ghosts = [source for i, source in enumerate(sources) if i not in matchings.values()]
 misses = [source for i, source in enumerate(catalog) if i not in matchings.keys()]
 logging.info("Sources matched.")
@@ -185,32 +191,120 @@ xs = [source[0].mean_width() for source in matches]
 ys = [source[0].peak for source in matches]
 plt.scatter(xs, ys, c='green')
 
-xs = [source.mean_width() for source in ghosts]
-ys = [source.peak for source in ghosts]
-plt.scatter(xs, ys, c='lightblue')
+# xs = [source.mean_width() for source in ghosts]
+# ys = [source.peak for source in ghosts]
+# plt.scatter(xs, ys, c='lightblue')
 
 plt.xlabel('Mean size of 1 sigma (pixels)')
 plt.ylabel('Intensity (sigma)')
 plt.savefig(filename + '-scatter.pdf')
 
 if IMAGE:
-    # Let's plot the matches and misses
-    logging.info("Creating matched image file...")
-    fig = aplpy.FITSFigure(hdulist[0])
-    fig.show_colorscale(cmap='inferno')
+    # Plot close matches
+    for source, close in close_matches:
+        # First find the overall bounding box
+        xmin1, xmax1, ymin1, ymax1 = source.bounds()
+        xmin2, xmax2, ymin2, ymax2 = close.bounds()
 
-    # Plot the misses
-    for source in misses:
-        source.show(fig, color='orange')
+        xmin = min(xmin1, xmin2)
+        xmax = max(xmax1, xmax2)
+        ymin = min(ymin1, ymin2)
+        ymax = max(ymax1, ymax2)
 
-    # Plot the matches
-    for _, source in matches:
+        # Enlarge the bounding box just slightly
+        xwidth = xmax - xmin
+        if xwidth > 300:
+            xmin -= (xwidth * 1.2 - xwidth) / 2
+            xmax += (xwidth * 1.2 - xwidth) / 2
+        else:
+            center = xmin + xwidth // 2
+            xmin = center - 150
+            xmax = center + 150
+        yheight = ymax - ymin
+        if yheight > 300:
+            ymin -= (yheight * 1.2 - yheight) / 2
+            ymax += (yheight * 1.2 - yheight) / 2
+        else:
+            center = ymin + yheight // 2
+            ymin = center - 150
+            ymax = center + 150
+
+        maxX, maxY = hdulist[0].data.shape
+        maxX, maxY = maxX - 1, maxY - 1
+        xmin, xmax, ymin, ymax = int(max(0, xmin)), int(min(xmax, maxX)), int(max(0, ymin)), int(min(ymax, maxY))
+
+        window = hdulist[0].data[ymin:ymax, xmin:xmax]
+        window = fits.PrimaryHDU(window)
+        window.header = hdulist[0].header.copy()
+        window.header['CRPIX1'] = window.header['CRPIX1'] - xmin
+        window.header['CRPIX2'] = window.header['CRPIX2'] - ymin
+
+        fig = aplpy.FITSFigure(window)
+        fig.show_colorscale(cmap='viridis')
+
         source.show(fig, color='green')
+        close.show(fig, color='orange')
 
-    # Plot the ghosts
+        fig.save(filename + '-closematch-ID' + str(source.id) + '-' + str(close.id) + '.png')
+
+    close_sources = [source[1] for source in close_matches]
     for source in ghosts:
-        source.show(fig, color='lightblue')
+        if source in close_sources:
+            continue
 
-    fig.add_grid()
-    logging.info("Saving matched image...")
-    fig.save(filename + '-matched.png', dpi=320)
+        xmin, xmax, ymin, ymax = source.bounds()
+
+        # Enlarge the bounding box just slightly
+        xwidth = xmax - xmin
+        if xwidth > 300:
+            xmin -= (xwidth * 1.2 - xwidth) / 2
+            xmax += (xwidth * 1.2 - xwidth) / 2
+        else:
+            center = xmin + xwidth // 2
+            xmin = center - 150
+            xmax = center + 150
+        yheight = ymax - ymin
+        if yheight > 300:
+            ymin -= (yheight * 1.2 - yheight) / 2
+            ymax += (yheight * 1.2 - yheight) / 2
+        else:
+            center = ymin + yheight // 2
+            ymin = center - 150
+            ymax = center + 150
+
+        maxX, maxY = hdulist[0].data.shape
+        maxX, maxY = maxX - 1, maxY - 1
+        xmin, xmax, ymin, ymax = int(max(0, xmin)), int(min(xmax, maxX)), int(max(0, ymin)), int(min(ymax, maxY))
+
+        window = hdulist[0].data[ymin:ymax, xmin:xmax]
+        window = fits.PrimaryHDU(window)
+        window.header = hdulist[0].header.copy()
+        window.header['CRPIX1'] = window.header['CRPIX1'] - xmin
+        window.header['CRPIX2'] = window.header['CRPIX2'] - ymin
+
+        fig = aplpy.FITSFigure(window)
+        fig.show_colorscale(cmap='viridis')
+
+        source.show(fig, color='orange')
+        fig.save(filename + '-ghost-ID' + str(source.id) + '.png')
+
+    # # Let's plot the matches and misses
+    # logging.info("Creating matched image file...")
+    # fig = aplpy.FITSFigure(hdulist[0])
+    # fig.show_colorscale(cmap='inferno')
+
+    # # Plot the misses
+    # for source in misses:
+    #     source.show(fig, color='orange')
+
+    # # Plot the matches
+    # for _, source in matches:
+    #     source.show(fig, color='green')
+
+    # # Plot the ghosts
+    # for source in ghosts:
+    #     source.show(fig, color='lightblue')
+
+    # fig.add_grid()
+    # logging.info("Saving matched image...")
+    # fig.save(filename + '-matched.png', dpi=320)
