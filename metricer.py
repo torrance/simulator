@@ -120,7 +120,7 @@ elif SELAVY:
     filename = SELAVY
     sources = selavy_sources_from_txt(filename, wcshelper)
 
-filename = os.path.splitext(filename)[0]
+filename = os.path.splitext(os.path.basename(filename))[0]
 
 # Debugging
 if DEBUG:
