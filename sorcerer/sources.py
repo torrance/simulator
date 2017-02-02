@@ -180,9 +180,10 @@ def synthetic_source_generator(count, xsize, ysize, wcshelper):
     for i in range(count):
         loc_x = np.random.randint(0, high=xsize)
         loc_y = np.random.randint(0, high=ysize)
-        peak = np.random.uniform(low=1.5, high=5)
-        major = np.random.uniform(low=20, high=200)
-        minor = major * np.random.uniform(low=0.5, high=1.5)
+        major = np.random.uniform(low=5, high=50)
+        minor = major * np.random.uniform(low=1.0, high=1.5)
+        max_peak = 6 * np.exp(-0.04 * major) + 5  # ~10 sigma at 5px, down to ~5 sigma by 80
+        peak = np.random.uniform(low=1.5, high=max_peak)
         pa = np.random.uniform(low=0.0, high=360.0)
         ra, dec, wmajor, wminor, wpa = wcshelper.pix2sky_ellipse(
             (loc_x, loc_y), major, minor, pa
@@ -218,7 +219,8 @@ def is_overlapping_source(candidate, sources):
     """
     for source in sources:
         min_distance = (max(candidate.major, candidate.minor)
-                        + max(source.major, source.minor)) * 3
+                        + max(source.major, source.minor)) * 5
+        min_distance = min(300, min_distance)
         distance = math.sqrt((candidate.loc_x - source.loc_x)**2
                              + (candidate.loc_y - source.loc_y)**2)
         if distance < min_distance:
