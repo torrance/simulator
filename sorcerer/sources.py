@@ -76,11 +76,11 @@ class EllipticalSource:
         fig.show_ellipses(
             self.ra,
             self.dec,
-            self.wminor,
-            self.wmajor,
+            self.wminor*2,
+            self.wmajor*2,
             angle=-self.wpa,
             edgecolor=color,
-            linewidth=0.6
+            linewidth=3
         )
 
     def bounds(self, magnify=1):
@@ -166,7 +166,7 @@ class RectangularSource:
         fig.show_polygons(
             [np.array([self.wtopleft, self.wtopright, self.wbottomright, self.wbottomleft])],
             edgecolor=color,
-            linewidth=0.6
+            linewidth=3
         )
 
     def bounds(self):
