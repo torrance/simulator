@@ -203,30 +203,34 @@ def selavy_sources_from_txt(filename, wcshelper):
 
             words = line.split()
 
-            x1, x2, y1, y2 = float(words[13]), float(words[14]), float(words[15]), float(words[16])
-            center = (np.mean([x1, x2]), np.mean([y1, y2]))
-            wcenter = wcshelper.pix2sky(center)
-            wtopleft = wcshelper.pix2sky((x1, y2))
-            wtopright = wcshelper.pix2sky((x2, y2))
-            wbottomright = wcshelper.pix2sky((x2, y1))
-            wbottomleft = wcshelper.pix2sky((x1, y1))
+            ellipse = wcshelper.sky2pix_ellipse(
+                (float(words[5]), float(words[6])),
+                float(words[14])/3600/2,
+                float(words[15])/3600/2,
+                float(words[16]),
+            )
 
-            sources.append(RectangularSource(
+            _, _, _, _, wpa = wcshelper.pix2sky_ellipse(
+                (ellipse[0], ellipse[1]),
+                ellipse[2],
+                ellipse[3],
+                float(words[16])
+            )
+
+            sources.append(EllipticalSource(
                 ID=words[0],
-                loc_x=center[0],
-                loc_y=center[1],
-                peak=float(words[12]),
-                xmin=x1,
-                xmax=x2,
-                ymin=y1,
-                ymax=y2,
-                ra=wcenter[0],
-                dec=wcenter[1],
-                wtopleft=wtopleft,
-                wtopright=wtopright,
-                wbottomright=wbottomright,
-                wbottomleft=wbottomleft,
-                total=float(words[11]),
+                loc_x=ellipse[0],
+                loc_y=ellipse[1],
+                peak=float(words[10]),
+                major=ellipse[3],
+                minor=ellipse[2],
+                pa=float(words[16]),
+                ra=float(words[5]),
+                dec=float(words[6]),
+                wmajor=float(words[15])/3600/2,
+                wminor=float(words[14])/3600/2,
+                wpa=wpa,
+                total=float(words[12])/1000,
                 totalerr=0,
             ))
 
