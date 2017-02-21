@@ -62,8 +62,8 @@ w.wcs.equinox = 2000.0
 logging.info("Creating FITs file...")
 hdu0 = fits.PrimaryHDU(data)
 hdu0.header['EXTEND'] = True
-hdu0.header['BMAJ'] = 2 * (1/60)
-hdu0.header['BMIN'] = 2 * (1/60)
+hdu0.header['BMAJ'] = 10 * (1/60/60)
+hdu0.header['BMIN'] = 10 * (1/60/60)
 hdu0.header['BPA'] = 0
 hdu0.header['BUNIT'] = 'JY/BEAM'
 hdu0.header += w.to_header()
