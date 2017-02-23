@@ -12,10 +12,10 @@ from astropy import wcs
 from astropy.convolution import Gaussian2DKernel, convolve
 from astropy.io import fits
 from matplotlib import pyplot as plt
-from sorcerer.models import draw_gaussian
-from sorcerer.output import Annotation
-from sorcerer.sources import synthetic_source_generator, is_overlapping_source, is_edge
-from sorcerer.wcs_helpers import WCSHelper
+from simulator.models import draw_gaussian
+from simulator.output import Annotation
+from simulator.sources import synthetic_source_generator, is_overlapping_source, is_edge
+from simulator.wcs_helpers import WCSHelper
 
 # Use Ubuntu because it has greek glpyhs included (ie. mu)
 matplotlib.rcParams['font.family'] = 'Ubuntu'

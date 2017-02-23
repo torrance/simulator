@@ -1,6 +1,6 @@
 import csv
 import numpy as np
-from sorcerer.sources import EllipticalSource, RectangularSource
+from simulator.sources import EllipticalSource, RectangularSource
 
 
 def aegean_sources_from_CSV(filename, wcshelper):

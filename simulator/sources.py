@@ -1,7 +1,7 @@
 import math
 import numpy as np
-from sorcerer.models import draw_ellipse, draw_rectangle
-from sorcerer.output import Ellipse
+from simulator.models import draw_ellipse, draw_rectangle
+from simulator.output import Ellipse
 
 
 class EllipticalSource:
